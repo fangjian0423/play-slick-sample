@@ -1,0 +1,33 @@
+@(student: Form[StudentForm])(implicit messages: Messages)
+
+@import helper._
+
+@main("Welcome to Play") {
+
+    <script>
+        $.get("/students", {}, function(studentList) {
+            for(var i = 0; i < studentList.length; i ++) {
+                var stuObj = studentList[i];
+                var stuDom = $("<li>").append("id: " + stuObj.id + ", name: " + stuObj.name + ", age: " + stuObj.age);
+                $("#students").append(stuDom);
+            }
+        });
+    </script>
+
+
+    <ul id="students">
+
+    </ul>
+
+    <div class="form">
+        @form(routes.StudentController.addStudent()) {
+            @inputText(student("name"))
+            @inputText(student("age"))
+
+            <div class="buttons">
+                <input type="submit" value="Add Student"/>
+            </div>
+        }
+    </div>
+
+}
