@@ -4,22 +4,23 @@
 
 @main("Welcome to Play") {
 
-    <script>
-        $.get("/students", {}, function(studentList) {
-            for(var i = 0; i < studentList.length; i ++) {
-                var stuObj = studentList[i];
-                var stuDom = $("<li>").append("id: " + stuObj.id + ", name: " + stuObj.name + ", age: " + stuObj.age);
-                $("#students").append(stuDom);
-            }
-        });
-    </script>
+    <div ng-controller="StudentController">
+        <div class="condition">
+            sort:
+            <select ng-model="sortProp">
+                <option value="id">id</option>
+                <option value="name">name</option>
+                <option value="age">age</option>
+            </select>
+            query: <input type="text" ng-model="queryText"/>
+        </div>
+        <ul id="students">
+            <li ng-repeat="student in students | filter: queryText | orderBy: sortProp">
+                id: {{ student.id }}, name {{ student.name }}, age: {{ student.age }}
+            </li>
+        </ul>
 
-
-    <ul id="students">
-
-    </ul>
-
-    <div class="form">
+        <div class="form">
         @form(routes.StudentController.addStudent()) {
             @inputText(student("name"))
             @inputText(student("age"))
@@ -28,6 +29,54 @@
                 <input type="submit" value="Add Student"/>
             </div>
         }
+        </div>
+
+        <hr/>
+
+        <div class="form">
+            <input type="text" ng-model="name"/>
+            <input type="text" ng-model="age"/>
+            <input type="button" value="Ajax Add Student" ng-click="addStudent()"/>
+        </div>
+
     </div>
+
+    <script>
+
+        var studentModule = angular.module("studentModule", []);
+
+        studentModule.controller("StudentController", function($scope, $http) {
+            $http.get("/students").success(function(students) {
+                $scope.students = students;
+            });
+            $scope.sortProp = "id";
+            $scope.queryText = "";
+
+
+            $scope.name = "";
+            $scope.age = "";
+
+            $scope.addStudent = function() {
+                var params = {
+                    "name": $scope.name,
+                    "age": window.parseInt($scope.age)
+                }
+                $http.post("/addStudent", params).success(function(resp) {
+                    if(resp.success = 1) {
+                        $scope.name = "";
+                        $scope.age = "";
+                        $http.get("/students").success(function(students) {
+                            $scope.students = students;
+                        });
+                    } else {
+                        alert("error");
+                    }
+
+                })
+            }
+
+        })
+
+    </script>
 
 }

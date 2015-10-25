@@ -43,6 +43,33 @@ class StudentController @Inject() (repo: StudentRepository, val messagesApi: Mes
     )
   }
 
+  def addStudentJson = Action.async { implicit request =>
+    val studentJsonObj = request.body.asJson.get
+
+    var resultMap = Json.obj(
+      "success" -> 1
+    )
+
+    val name = (studentJsonObj \ "name").validate[String].getOrElse("unknown")
+    val age = (studentJsonObj \ "age").validate[Int].getOrElse(-1)
+
+    if(age < 0 || age > 140) {
+      resultMap = resultMap + ("success", Json.toJson(0))
+    }
+
+    if(name == "unknown" || name == "") {
+      resultMap = resultMap + ("success", Json.toJson(0))
+    }
+
+    if((resultMap \ "success").get.as[Int] == 1) {
+      repo.create(name, age).map { _ =>
+        Ok(resultMap)
+      }
+    } else {
+      Future.apply().map(_ => Ok(resultMap))
+    }
+  }
+
   def getStudents = Action.async {
     repo.list().map { student =>
       Ok(Json.toJson(student))
